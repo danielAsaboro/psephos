@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Browser Proving</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #8b5cf6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #7c3aed;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      max-height: 400px;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+    .log-entry {
+      margin: 4px 0;
+      padding: 2px 0;
+    }
+    .log-success { color: #4ade80; }
+    .log-error { color: #f87171; }
+    .log-info { color: #60a5fa; }
+    h1 { color: #333; }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .status.success { background: #d1fae5; color: #065f46; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.loading { background: #dbeafe; color: #1e40af; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌐 Browser Proving Test (bb.js)</h1>
+    <p>This tests the Barretenberg browser proving implementation without needing the full React app.</p>
+
+    <div id="status"></div>
+
+    <button id="testBtn" onclick="testBrowserProving()">
+      Generate Test Proof with Barretenberg
+    </button>
+
+    <div id="log" class="log">
+      <div class="log-entry log-info">Console ready. Click the button to test browser proving.</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { generateVoteProofInBrowser, isBrowserProvingAvailable } from './src/lib/browser-proving.ts';
+
+    window.testBrowserProving = async function() {
+      const btn = document.getElementById('testBtn');
+      const statusDiv = document.getElementById('status');
+
+      btn.disabled = true;
+      statusDiv.className = 'status loading';
+      statusDiv.textContent = '⏳ Testing browser proving...';
+
+      try {
+        log('🔍 Checking if browser proving is available...', 'info');
+
+        const available = await isBrowserProvingAvailable();
+        if (!available) {
+          throw new Error('Browser proving not available. Circuit artifact may be missing.');
+        }
+
+        log('✅ Browser proving is available!', 'success');
+        log('📝 Preparing test inputs...', 'info');
+
+        // Test inputs (matching the circuit)
+        const input = {
+          tokenBalance: BigInt(100),
+          voterSecret: BigInt(12345),
+          voteChoice: 1, // Vote "yes"
+          minTokenThreshold: BigInt(50),
+          proposalId: BigInt(1),
+        };
+
+        log('🔐 Generating proof with Barretenberg (this will take 30-60 seconds)...', 'info');
+        log('⏱️  Started at: ' + new Date().toLocaleTimeString(), 'info');
+
+        const result = await generateVoteProofInBrowser(input);
+
+        log('⏱️  Finished at: ' + new Date().toLocaleTimeString(), 'info');
+        log('✅ Proof generated successfully!', 'success');
+        log('📦 Proof size: ' + result.proof.length + ' bytes', 'info');
+        log('📊 Public inputs:', 'info');
+        log('  - Min threshold: ' + result.publicInputs.minTokenThreshold.toString(), 'info');
+        log('  - Proposal ID: ' + result.publicInputs.proposalId.toString(), 'info');
+        log('  - Nullifier (hex): ' + bytesToHex(result.publicInputs.nullifier), 'info');
+        log('  - Commitment (hex): ' + bytesToHex(result.publicInputs.voteCommitment), 'info');
+
+        statusDiv.className = 'status success';
+        statusDiv.textContent = '✅ Browser proving works! Proof generated with Barretenberg.';
+
+      } catch (error) {
+        log('❌ Error: ' + error.message, 'error');
+        console.error('Full error:', error);
+
+        statusDiv.className = 'status error';
+        statusDiv.textContent = '❌ Error: ' + error.message;
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry log-' + type;
+      entry.textContent = '> ' + message;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function bytesToHex(bytes) {
+      return '0x' + Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    // Make log available globally
+    window.log = log;
+
+    // Log initial status
+    log('📋 Circuit artifact should be at: /circuits/psephos_circuits.json', 'info');
+    log('🏗️  Click the button when ready to test!', 'info');
+  </script>
+</body>
+</html>

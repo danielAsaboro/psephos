@@ -1,0 +1,8 @@
+[package]
+name = "recursive_verifier"
+type = "bin"
+authors = [""]
+compiler_version = ">=0.23.0"
+description = "Recursive verifier that proves verification of voting proofs"
+
+[dependencies]

@@ -1,0 +1,11 @@
+{
+  "idl": "./anchor/target/idl/psephos.json",
+  "scripts": {
+    "js": [
+      {
+        "from": "@codama/renderers-js",
+        "args": ["./src/generated/psephos"]
+      }
+    ]
+  }
+}

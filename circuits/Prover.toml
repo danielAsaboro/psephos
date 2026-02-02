@@ -1,0 +1,10 @@
+# Private inputs
+token_balance = "100"
+voter_secret = "12345"
+vote_choice = "1"
+
+# Public inputs
+min_token_threshold = "50"
+proposal_id = "1"
+nullifier = "0x0a2117377b0ea781202c90d57ddc28c4a98ad83879c0bc1132cca576ff99e9bf"
+vote_commitment = "0x1f1dd08a1cb204c943c29bfdbd6e96eda795980a7521f1479f43c33dd56d9a32"

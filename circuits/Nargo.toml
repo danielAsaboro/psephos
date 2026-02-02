@@ -1,0 +1,8 @@
+[package]
+name = "psephos_circuits"
+type = "bin"
+authors = [""]
+compiler_version = ">=0.23.0"
+description = "Zero-knowledge circuits for private voting on Solana"
+
+[dependencies]
